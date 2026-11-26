@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Folio Drive — Portfolio Driving Game</title>
+    <meta name="description" content="A playful Three.js driving portfolio game.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <canvas id="scene"></canvas>
+
+    <!-- ===== HUD ===== -->
+    <div id="hud" class="hidden">
+        <div class="hud-speed">
+            <span id="hud-speed-value">0</span><span class="hud-speed-unit">km/h</span>
+        </div>
+        <div class="hud-hints">
+            <span class="hint" id="hint">WASD / Arrows to drive &middot; Shift boost &middot; Space jump &middot; H honk</span>
+        </div>
+        <button id="btn-map" class="hud-btn" title="Map (M)">Map</button>
+        <button id="btn-audio" class="hud-btn" title="Audio (L)">Audio</button>
+        <button id="btn-stuck" class="hud-btn" title="Respawn (R)">I'm stuck!</button>
+    </div>
+
+    <!-- ===== Minimap ===== -->
+    <canvas id="minimap" width="180" height="180"></canvas>
+
+    <!-- ===== Title screen ===== -->
+    <div id="screen-title" class="screen">
+        <div class="title-card">
+            <h1 class="game-title">Folio Drive</h1>
+            <p class="game-subtitle">Welcome! Drive around this little world and discover its secrets.<br>Don't break anything!</p>
+            <button id="btn-start" class="btn-big">Start engine</button>
+            <p class="credits">Built with Three.js &middot; Original demo inspired by playful folio sites</p>
+        </div>
+    </div>
+
+    <!-- ===== Options ===== -->
+    <div id="screen-options" class="screen hidden">
+        <div class="panel">
+            <h2>Options</h2>
+            <div class="option-row">
+                <span>Audio</span>
+                <button id="opt-audio" class="toggle">On</button>
+            </div>
+            <div class="option-row">
+                <span>Quality</span>
+                <div>
+                    <button id="opt-quality-low" class="toggle">Low</button>
+                    <button id="opt-quality-high" class="toggle active">High</button>
+                </div>
+            </div>
+            <div class="option-row">
+                <span>I'm stuck!</span>
+                <button id="opt-respawn" class="toggle">Respawn</button>
+            </div>
+            <div class="option-row">
+                <span>Reset</span>
+                <button id="opt-reset" class="toggle">Reset world</button>
+            </div>
+            <button id="btn-close-options" class="btn-big">Close</button>
+    </div>
+    </div>
+
+    <!-- ===== Controls help ===== -->
+    <div id="screen-controls" class="screen hidden">
+        <div class="panel">
+            <h2>Controls</h2>
+            <table class="controls-table">
+                <tr><th>WASD / Arrows</th><td>Drive</td></tr>
+                <tr><th>Shift</th><td>Boost</td></tr>
+                <tr><th>Ctrl / B</th><td>Brake</td></tr>
+                <tr><th>Space</th><td>Jump</td></tr>
+                <tr><th>M</th><td>Toggle map</td></tr>
+                <tr><th>L</th><td>Mute</td></tr>
+                <tr><th>R</th><td>Respawn</td></tr>
+                <tr><th>H</th><td>Honk</td></tr>
+            </table>
+            <button id="btn-close-controls" class="btn-big">Close</button>
+        </div>
+    </div>
+
+    <!-- ===== Circuit results ===== -->
+    <div id="screen-circuit" class="screen hidden">
+        <div class="panel">
+            <h2>Circuit</h2>
+            <p class="circuit-msg" id="circuit-msg">Drive through all 12 checkpoints as fast as you can!</p>
+            <div class="circuit-time">
+                <span id="circuit-time">00:00:000</span>
+            </div>
+            <p class="circuit-best" id="circuit-best">Best: —</p>
+            <button id="btn-restart-circuit" class="btn-big">Restart</button>
+        </div>
+    </src=div>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>
