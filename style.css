@@ -1,0 +1,33 @@
+/* Folio Drive - UI styles */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ff8c1a;--panel-bg:rgba(20,25,35,.92);--panel-border:rgba(255,255,255,.15)}
+html,body{width:100%;height:100%;overflow:hidden;background:#0e0f13;font-family:'Nunito',sans-serif;color:#fff}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block}
+.hidden{display:none!important}
+.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(14,15,19,.35) 0,rgba(14,15,19,.85) 100%);z-index:50;user-select:none}
+.title-card{text-align:center;max-width:640px;padding:0 24px}
+.game-title{font-family:'Amatic SC',cursive;font-size:clamp(64px,12vw,140px);line-height:1;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.4)}
+.game-subtitle{margin:16px 0 28px;font-size:18px;line-height:1.6;color:rgba(255,255,255,.85)}
+.credits{margin-top:28px;font-size:12px;color:rgba(255,255,255,.4)}
+.btn-big{font-family:'Amatic SC',cursive;font-size:32px;padding:8px 36px 10px;color:#fff;background:var(--accent);border:none;border-radius:999px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.35)}
+.btn-big:hover{transform:translateY(-2px)}
+.panel{background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:20px;padding:32px 40px;min-width:min(420px,90vw);max-width:90vw;max-height:85vh;overflow:auto;text-align:center}
+.panel h2{font-family:'Amatic SC',cursive;font-size:44px;margin-bottom:20px}
+.option-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08);text-align:left}
+.toggle{font-size:14px;font-weight:700;padding:6px 16px;color:rgba(255,255,255,.55);background:rgba(255,255,255,.08);border:1px solid var(--panel-border);border-radius:999px;cursor:pointer}
+.toggle.active{color:#111;background:var(--accent);border-color:var(--accent)}
+.toggle+.toggle{margin-left:8px}
+.controls-table{width:100%;border-collapse:collapse;margin-bottom:20px}
+.controls-table th{font-family:'Amatic SC',cursive;font-size:22px;text-align:right;padding:6px 12px 6px 0;color:var(--accent);white-space:nowrap}
+.controls-table td{text-align:left;padding:6px 0;font-size:15px;color:rgba(255,255,255,.85);border-bottom:1px dashed rgba(255,255,255,.12)}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:20}
+.hud-speed{position:absolute;top:24px;left:28px;font-family:'Amatic SC',cursive;font-size:54px;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.5)}
+.hud-speed-unit{font-size:24px;margin-left:8px;color:var(--accent)}
+.hud-hints{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-size:13px;color:rgba(255,255,255,.65);background:rgba(0,0,0,.35);padding:8px 18px;border-radius:999px;white-space:nowrap}
+.hud-btn{pointer-events:auto;position:absolute;top:24px;font-size:13px;font-weight:700;color:rgba(255,255,255,.8);background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:8px 16px;cursor:pointer}
+.hud-btn:hover{background:var(--accent);color:#111;border-color:var(--accent)}
+#btn-map{right:28px}#btn-audio{right:96px}#btn-stuck{right:164px}
+#minimap{position:fixed;right:20px;bottom:20px;width:180px;height:180px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(10,12,18,.75);z-index:20;pointer-events:none}
+.circuit-msg{font-size:15px;color:rgba(255,255,255,.75);margin-bottom:12px}
+.circuit-time{font-family:'Amatic SC',cursive;font-size:72px;color:var(--accent);margin:8px 0 4px}
+.circuit-best{font-size:14px;color:rgba(255,255,255,.6);margin-bottom:20px}
