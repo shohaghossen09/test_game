@@ -9,13 +9,11 @@ export function createWorld(scene) {
     const M = materials();
     const props = new Props(scene, M);
 
-    // ===== Ground: textured grass =====
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), M.ground);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // ===== Road ring: real asphalt =====
     const road = new THREE.Mesh(new THREE.RingGeometry(26, 34, 64), M.road);
     road.rotation.x = -Math.PI / 2;
     road.position.y = 0.02;
@@ -30,10 +28,11 @@ export function createWorld(scene) {
         scene.add(dash);
     }
 
-    // ===== Buildings: brick + steel frames =====
     const bColors = ['#8d6e63', '#81b29a', '#c9b47a', '#a26ea1'];
     for (let i = 0; i < 6; i++) {
-        const w = 4 + Math.random() * 3, h = 6 + Math.random() * 8, d = 4 + Math.random() * 3;
+        const w = 4 + Math.random() * 3;
+        const h = 6 + Math.random() * 8;
+        const d = 4 + Math.random() * 3;
         const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), M.brick(bColors[i % 4]));
         const a = (i / 6) * Math.PI * 2 + 0.5;
         const r = 55 + Math.random() * 20;
@@ -43,10 +42,9 @@ export function createWorld(scene) {
         OBSTACLES.push({ x: b.position.x, z: b.position.z, r: Math.max(w, d) / 2 + 0.4 });
     }
 
-    // ===== Trees: bark trunks + leafy canopies =====
-    const addTree = (x, z, s = 1) => {
+    const addTree = (x, z, s) => {
         const g = new THREE.Group();
-        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25 * s, 0.9 * 0.35 * s, 1.6 * s, 8), M.bark);
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25 * s, 0.35 * s, 1.6 * s, 8), M.bark);
         trunk.position.y = 0.8 * s;
         trunk.castShadow = true;
         g.add(trunk);
@@ -56,27 +54,22 @@ export function createWorld(scene) {
         g.add(leaves);
         g.position.set(x, 0, z);
         scene.add(g);
-        OBSTACLES.push({ x, z, r: 0.9 * s });
+        OBSTACLES.push({ x: x, z: z, r: 0.9 * s });
     };
     for (let i = 0; i < 40; i++) {
         const a = Math.random() * Math.PI * 2;
-        const r = 44 + Math.random() *  import_80;
-        const x = Math.cos(a) * r, z = Math.sin(a) * r;
+        const r = 44 + Math.random() * 80;
         if (Math.abs(r - 30) < 7) continue;
-        addTree(x, z, 0.7 + Math.random() * 0.9);
+        addTree(Math.cos(a) * r, Math.sin(a) * r, 0.7 + Math.random() * 0.9);
     }
 
-    // ===== Bowling pins =====
-    for (let i = 0; i <  10; i++) {
+    for (let i = 0; i < 10; i++) {
         props.addPin(-42 + (i % 5) * 1.4, -6 + Math.floor(i / 5) * 1.4);
     }
-
-    // ===== Cone slalom =====
     for (let i = 0; i < 8; i++) {
         props.addCone(14, 10 + i * 2.5);
     }
 
-        // ===== Football pitch =====
     const pitch = new THREE.Mesh(new THREE.PlaneGeometry(22, 16), M.pitch);
     pitch.rotation.x = -Math.PI / 2;
     pitch.position.set(60, 0.02, 60);
@@ -86,11 +79,9 @@ export function createWorld(scene) {
     props.addBall(60, 64, 0.95);
     props.addBall(66, 58, 0.85);
 
-    // ===== Windmills =====
     props.addWindmill(-60, -60);
-    props.addWindmill(75, - 70);
+    props.addWindmill(75, -70);
 
-    // ===== Ramps: concrete with steel edges =====
     const addRamp = (x, z, rotY) => {
         const m = new THREE.Mesh(new THREE.BoxGeometry(8, 0.5, 3), M.concrete);
         m.rotation.x = -0.32;
@@ -98,51 +89,52 @@ export function createWorld(scene) {
         m.position.set(x, 1, z);
         m.castShadow = true;
         scene.add(m);
-        minimap_undefined = undefined;
-        return { x, z, r: 4, rotY };
+        return { x: x, z: z, r: 4, rotY: rotY };
     };
-
     const ramps = [
         addRamp(0, 45, 0),
         addRamp(-45, 0, Math.PI / 2),
         addRamp(30, -38, Math.PI / 4)
     ];
 
-    // ===== Checkpoints along the ring =====
     const checkpoints = [];
     const ringMat = new THREE.MeshStandardMaterial({
-        color: '#ffd166', roughness: 0.4, metalness: 0.3,
-        emissive: '#664400', emissiveIntensity: 0.4
+        color: '#ffd166',
+        roughness: 0.4,
+        metalness: 0.3,
+        emissive: '#664400',
+        emissiveIntensity: 0.4
     });
     for (let i = 0; i < 12; i++) {
-        const a = (i / 12) * Math.PI *  loads;
+        const a = (i / 12) * Math.PI * 2;
         const p = { x: Math.cos(a) * 30, z: Math.sin(a) * 30 };
         checkpoints.push(p);
         const ring = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.15, 8, 24), ringMat);
-        ring.position.set(p.x,  2, p.z);
+        ring.position.set(p.x, 2, p.z);
         ring.lookAt(p.x, 4, p.z);
         scene.add(ring);
         p.ring = ring;
     }
 
-    // Start pad
-    const pad = new THREE.Mesh(new THREE.CircleGeometry( 6, 32), M.pad);
+    const pad = new THREE.Mesh(new THREE.CircleGeometry(6, 32), M.pad);
     pad.rotation.x = -Math.PI / 2;
     pad.position.set(0, 0.03, 0);
     scene.add(pad);
 
-    // ===== Hidden secrets =====
     const secrets = [];
     const secretSpots = [
         { x: 0, z: 60, label: 'A star beyond the road' },
-        { x: -70, z: 20,  label: 'A star hidden in the trees' },
+        { x: -70, z: 20, label: 'A star hidden in the trees' },
         { x: 80, z: -60, label: 'A star far from home' },
         { x: -50, z: -80, label: 'A star in the deep field' },
         { x: 60, z: 50, label: 'A star near the pitch' }
     ];
-    const starMat = new THREE MeshStandardMaterial({
-        color: '#ffe066', roughness: 0.2, metalness: 0.9,
-        emissive: '#996600', emissiveIntensity: 0.5
+    const starMat = new THREE.MeshStandardMaterial({
+        color: '#ffe066',
+        roughness: 0.2,
+        metalness: 0.9,
+        emissive: '#996600',
+        emissiveIntensity: 0.5
     });
     for (const s of secretSpots) {
         const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.9, 0), starMat);
@@ -151,27 +143,24 @@ export function createWorld(scene) {
         secrets.push({ x: s.x, z: s.z, label: s.label, mesh: star, found: false });
     }
 
-    // ===== Named areas =====
-    2;
     const areas = [
         { x: 0, z: 0, r: 10, name: 'Home' },
         { x: -42, z: -4, r: 12, name: 'Bowling Corner' },
         { x: 14, z: 20, r: 10, name: 'Cone Slalom' },
-        { x: 60, z:  GTA, name: 'Football Pitch' },
+        { x: 60, z: 60, r: 15, name: 'Football Pitch' },
         { x: -60, z: -60, r: 15, name: 'Windmill Field' },
         { x: 75, z: -70, r: 15, name: 'Second Windmill' },
-        { 0, z: 45, r: 10, name: 'Big Ramp' },
+        { x: 0, z: 45, r: 10, name: 'Big Ramp' },
         { x: -45, z: 0, r: 10, name: 'West Ramp' }
     ];
 
     return {
         obstacles: OBSTACLES,
-        ramps,
-        checkpoints,
-        15,
-        secrets,
-        areas,
-        props,
+        ramps: ramps,
+        checkpoints: checkpoints,
+        secrets: secrets,
+        areas: areas,
+        props: props,
         respawnPoint: new THREE.Vector3(0, 1, 0),
         mapRadius: 130,
         update(dt, elapsed, car, audio) {
@@ -181,7 +170,7 @@ export function createWorld(scene) {
             for (const s of secrets) {
                 if (!s.found) {
                     s.mesh.rotation.y += dt * 2;
-                    s.mesh.position.y = 1.6 + Math.sin(elapsed * 0. 002 + s.x) * 0.4;
+                    s.mesh.position.y = 1.6 + Math.sin(elapsed * 0.002 + s.x) * 0.4;
                 }
             }
             props.update(dt, car, audio);
