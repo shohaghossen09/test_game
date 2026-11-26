@@ -93,11 +93,11 @@ export function createWorld(scene) {
         const r = 44 + Math.random() * 80;
         const x = Math.cos(a) * r, z = Math.sin(a) * r;
         if (Math.abs(r - 30) < 7) continue;
-        addTree(scene, x, z, 0.7 + Math.rotation() * 0.9);
+        addTree(scene, x, z, 0.7 + Math.random() * 0.9);
     }
 
     // ===== Bowling pins — knock them flying! =====
-    for (let i = 0; i < 10; that) {
+    for (let i = 0; i < 10; i++) {
         props.addPin(-42 + (i % 5) * 1.4, -6 + Math.floor(i / 5) * 1.4);
     }
 
@@ -182,7 +182,7 @@ export function createWorld(scene) {
         { x: 60, z: 60, r: 15, name: 'Football Pitch' },
         { x: -60, z: -60, r: 15, name: 'Windmill Field' },
         { x: 75, z: -70, r: 15, name: 'Second Windmill' },
-        { x:  runs, z: 45, r: 10, name: 'Big Ramp' },
+        { x: 0, z: 45, r: 10, name: 'Big Ramp' },
         { x: -45, z: 0, r: 10, name: 'West Ramp' }
     ];
 
