@@ -5,6 +5,8 @@ import { FollowCamera } from './camera.js';
 import { UI } from './ui.js';
 import { Circuit } from './circuit.js';
 import { materials } from './materials.js';
+import { loadCarModel } from './car-model.js';
+import { Sky } from 'three/addons/objects/Sky.js';
 
 const canvas = document.getElementById('scene');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -13,26 +15,36 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 0.85;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#87b7d4');
-scene.fog = new THREE.Fog('#87b7d4', 70, 240);
+scene.fog = new THREE.Fog('#cfe0ea', 70, 260);
 
+// ===== Physically-based sky (Preetham atmosphere) =====
+const sky = new Sky();
+sky.scale.setScalar(45000);
+scene.add(sky);
+const skyUniforms = sky.material.uniforms;
+skyUniforms.turbidity.value = 6;
+skyUniforms.rayleigh.value = 1.8;
+skyUniforms.mieCoefficient.value = 0.005;
+skyUniforms.mieDirectionalG.value = 0.8;
+const sunVec = new THREE.Vector3().setFromSphericalCoords(
+    1, THREE.MathUtils.degToRad(62), THREE.MathUtils.degToRad(135)
+);
+skyUniforms.sunPosition.value.copy(sunVec);
+
+// Environment reflections generated from the sky itself
 const pmrem = new THREE.PMREMGenerator(renderer);
-const skyScene = new THREE.Scene();
-skyScene.background = new THREE.Color('#87b7d4');
-const skyEnv = pmrem.fromScene(skyScene, 0.04);
-scene.environment = skyEnv.texture;
-scene.environmentIntensity = 0.5;
+scene.environment = pmrem.fromScene(sky).texture;
 pmrem.dispose();
 
-const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 500);
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 5000);
 camera.position.set(0, 8, 14);
 
-scene.add(new THREE.HemisphereLight('#cfe8ff', '#5d8a3a', 0.55));
-const sun = new THREE.DirectionalLight('#fff2dd', 2.2);
-sun.position.set(40, 60, 20);
+// Sun light aligned with the sky sun
+const sun = new THREE.DirectionalLight('#fff2dd', 2.4);
+sun.position.copy(sunVec).multiplyScalar(80);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 sun.shadow.camera.left = -80;
@@ -41,12 +53,14 @@ sun.shadow.camera.top = 80;
 sun.shadow.camera.bottom = -80;
 sun.shadow.bias = -0.0004;
 scene.add(sun);
+scene.add(new THREE.HemisphereLight('#cfe8ff', '#5d8a3a', 0.5));
 
 materials();
 
 const world = createWorld(scene);
 const car = new Car(scene);
 car.respawn(world.respawnPoint);
+loadCarModel(car);
 const followCam = new FollowCamera(camera, canvas);
 const ui = new UI();
 const circuit = new Circuit(world, ui);
@@ -244,7 +258,7 @@ document.getElementById('btn-close-options').onclick = () => ui.hideOptions();
 function setQuality(high) {
     renderer.shadowMap.enabled = high;
     renderer.setPixelRatio(high ? Math.min(devicePixelRatio, 2) : 0.75);
-    scene.fog.far = high ? 240 : 140;
+    scene.fog.far = high ? 260 : 150;
     document.getElementById('opt-quality-high').classList.toggle('active', high);
     document.getElementById('opt-quality-low').classList.toggle('active', !high);
     renderer.shadowMap.needsUpdate = true;
