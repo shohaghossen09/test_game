@@ -92,6 +92,21 @@ function checkSecrets() {
     }
 }
 
+// ---------- Area discovery ----------
+const visitedAreas = new Set();
+function checkAreas() {
+    for (const a of world.areas) {
+        if (visitedAreas.has(a.name)) continue;
+        const d = Math.hypot(car.group.position.x - a.x, car.group.position.z - a.z);
+        if (d < a.r) {
+            visitedAreas.add(a.name);
+            if (a.name !== 'Home') {
+                ui.setHint(`Welcome to ${a.name}!`, 3);
+            }
+        }
+    }
+}
+
 // ---------- Input (keyboard) ----------
 const input = { forward: false, backward: false, left: false, right: false, boost: false, brake: false, jump: false };
 
@@ -205,6 +220,8 @@ document.getElementById('opt-respawn').onclick = () => car.respawn(world.respawn
 document.getElementById('opt-reset').onclick = () => {
     car.respawn(world.respawnPoint);
     circuit.reset();
+    world.props.reset();
+    visitedAreas.clear();
     ui.setHint('World reset', 2);
 };
 document.getElementById('opt-quality-low').onclick = () => setQuality(false);
@@ -248,8 +265,9 @@ function tick() {
     } else {
         car.update(dt, input, world);
         checkSecrets();
+        checkAreas();
         circuit.update(car);
-        world.update(dt, elapsed);
+        world.update(dt, elapsed, car, audio);
         followCam.update(dt, car.group.position, car.heading);
         ui.updateSpeed(car.speedKmh);
         ui.updateMinimap(car.group.position, world);
