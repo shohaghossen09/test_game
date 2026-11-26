@@ -11,6 +11,10 @@ export class UI {
             options: document.getElementById('screen-options'),
             controls: document.getElementById('screen-controls'),
             circuit: document.getElementById('screen-circuit'),
+            bts: document.getElementById('screen-bts'),
+            secretsBadge: document.getElementById('secrets-found'),
+            secretsCount: document.getElementById('secrets-count'),
+            secretsTotal: document.getElementById('secrets-total'),
             circuitMsg: document.getElementById('circuit-msg'),
             circuitTime: document.getElementById('circuit-time'),
             circuitBest: document.getElementById('circuit-best')
@@ -26,6 +30,8 @@ export class UI {
     hideOptions() { this.el.options.classList.add('hidden'); }
     showControls() { this.el.controls.classList.remove('hidden'); }
     hideControls() { this.el.controls.classList.add('hidden'); }
+    showBts() { this.el.bts.classList.remove('hidden'); }
+    hideBts() { this.el.bts.classList.add('hidden'); }
 
     toggleMap() {
         this.showMap = !this.showMap;
@@ -38,6 +44,15 @@ export class UI {
     }
 
     updateSpeed(kmh) { this.el.speed.textContent = kmh; }
+
+    initSecrets(total) {
+        this.el.secretsTotal.textContent = total;
+        this.el.secretsBadge.classList.remove('hidden');
+    }
+
+    updateSecrets(count) {
+        this.el.secretsCount.textContent = count;
+    }
 
     updateCircuit(timeStr, idx, total) {
         if (this.circuitPanelOpen) {
@@ -71,7 +86,7 @@ export class UI {
 
         // road ring
         ctx.strokeStyle = '#666';
-        ctx.lineWidth = 8 * scale * 30;
+        ctx.lineWidth = 8;
         ctx.beginPath();
         ctx.arc(0, 0, 30 * scale * 2.4, 0, Math.PI * 2);
         ctx.stroke();
@@ -80,6 +95,18 @@ export class UI {
         for (const c of world.checkpoints) {
             ctx.fillStyle = '#ffd166';
             ctx.fillRect(c.x * scale - 1, c.z * scale - 1, 3, 3);
+        }
+
+        // secrets (undiscovered)
+        if (world.secrets) {
+            for (const s of world.secrets) {
+                if (!s.found) {
+                    ctx.fillStyle = '#ffe066';
+                    ctx.beginPath();
+                    ctx.arc(s.x * scale, s.z * scale, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
         }
 
         // car
