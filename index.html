@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Folio Drive — Portfolio Driving Game</title>
+    <meta name="description" content="A playful Three.js driving portfolio game.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <canvas id="scene"></canvas>
+
+    <!-- ===== HUD ===== -->
+    <div id="hud" class="hidden">
+        <div class="hud-speed">
+            <span id="hud-speed-value">0</span><span class="hud-speed-unit">km/h</span>
+        </div>
+        <div class="hud-hints">
+            <span class="hint" id="hint">WASD / Arrows to drive &middot; Shift boost &middot; Space jump &middot; H honk</span>
+        </div>
+        <button id="btn-map" class="hud-btn" title="Map (M)">Map</button>
+        <button id="btn-audio" class="hud-btn" title="Audio (L)">Audio</button>
+        <button id="btn-stuck" class="hud-btn" title="Respawn (R)">I'm stuck!</button>
+        <button id="btn-bts" class="hud-btn" title="Behind the scenes (B)">?</button>
+    </div>
+
+    <!-- ===== Mobile touch controls ===== -->
+    <div id="touch-controls" class="hidden">
+        <div id="touch-steer" class="touch-stick">
+            <div id="touch-knob" class="touch-knob"></div>
+        </div>
+        <div class="touch-buttons">
+            <button id="touch-boost" class="touch-btn">BOOST</button>
+            <button id="touch-jump" class="touch-btn">JUMP</button>
+            <button id="touch-brake" class="touch-btn touch-btn-small">BRAKE</button>
+        </div>
+    </div>
+
+    <!-- ===== Minimap ===== -->
+    <canvas id="minimap" class="hidden" width="180" height="180"></canvas>
+
+    <!-- ===== Secrets counter ===== -->
+    <div id="secrets-found" class="secrets-badge hidden">
+        <span id="secrets-count">0</span> / <span id="secrets-total">0</span> secrets
+    </div>
+
+    <!-- ===== Title screen ===== -->
+    <div id="screen-title" class="screen">
+        <div class="title-card">
+            <h1 class="game-title">Folio Drive</h1>
+            <p class="game-subtitle">Welcome! Drive around this little world and discover its secrets.<br>Don't break anything!</p>
+            <button id="btn-start" class="btn-big">Start engine</button>
+            <p class="credits">Built with Three.js &middot; Original demo inspired by playful folio sites</p>
+        </div>
+    </div>
+
+    <!-- ===== Options ===== -->
+    <div id="screen-options" class="screen hidden">
+        <div class="panel">
+            <h2>Options</h2>
+            <div class="option-row">
+                <span>Audio</span>
+                <button id="opt-audio" class="toggle active">On</button>
+            </div>
+            <div class="option-row">
+                <span>Quality</span>
+                <div>
+                    <button id="opt-quality-low" class="toggle">Low</button>
+                    <button id="opt-quality-high" class="toggle active">High</button>
+                </div>
+            </div>
+            <div class="option-row">
+                <span>I'm stuck!</span>
+                <button id="opt-respawn" class="toggle">Respawn</button>
+            </div>
+            <div class="option-row">
+                <span>Reset</span>
+                <button id="opt-reset" class="toggle">Reset world</button>
+            </div>
+            <button id="btn-close-options" class="btn-big">Close</button>
+        </div>
+    </div>
+
+    <!-- ===== Controls help ===== -->
+    <div id="screen-controls" class="screen hidden">
+        <div class="panel">
+            <h2>Controls</h2>
+            <table class="controls-table">
+                <tr><th>WASD / Arrows</th><td>Drive</td></tr>
+                <tr><th>Shift</th><td>Boost</td></tr>
+                <tr><th>Left Ctrl</th><td>Brake</td></tr>
+                <tr><th>Space</th><td>Jump</td></tr>
+                <tr><th>M</th><td>Toggle map</td></tr>
+                <tr><th>L</th><td>Mute</td></tr>
+                <tr><th>R</th><td>Respawn</td></tr>
+                <tr><th>H</th><td>Honk</td></tr>
+                <tr><th>B</th><td>Behind the scenes</td></tr>
+                <tr><th>C</th><td>Start circuit race</td></tr>
+                <tr><th>1-9</th><td>Hydraulics bounce</td></tr>
+                <tr><th>Mobile</th><td>Joystick to steer &middot; BOOST / JUMP / BRAKE buttons</td></tr>
+            </table>
+            <button id="btn-close-controls" class="btn-big">Close</button>
+        </div>
+    </div>
+
+    <!-- ===== Circuit results ===== -->
+    <div id="screen-circuit" class="screen hidden">
+        <div class="panel">
+            <h2>Circuit</h2>
+            <p class="circuit-msg" id="circuit-msg">Drive through all 12 checkpoints as fast as you can!</p>
+            <div class="circuit-time">
+                <span id="circuit-time">00:00:000</span>
+            </div>
+            <p class="circuit-best" id="circuit-best">Best: —</p>
+            <button id="btn-restart-circuit" class="btn-big">Restart</button>
+        </div>
+    </div>
+
+    <!-- ===== Behind the scenes ===== -->
+    <div id="screen-bts" class="screen hidden">
+        <div class="panel">
+            <h2>Behind the Scene</h2>
+            <p class="bts-intro">Thank you for visiting! If you are curious about how this world was built, here is everything you need to know.</p>
+            <table class="controls-table">
+                <tr><th>Renderer</th><td>Three.js — WebGL via ES modules (CDN import map)</td></tr>
+                <tr><th>Physics</th><td>Custom arcade physics written from scratch (no engine)</td></tr>
+                <tr><th>Camera</th><td>Smooth-lerp follow camera with drag orbit and wheel zoom</td></tr>
+                <tr><th>Minimap</th><td>Canvas 2D, drawn from live world data</td></tr>
+                <tr><th>Audio</th><td>WebAudio API — procedural honk and chime, no sound files</td></tr>
+                <tr><th>Mobile</th><td>Virtual joystick + touch buttons</td></tr>
+                <tr><th>Source</th><td>100% original code, in this repo</td></tr>
+            </table>
+            <p class="bts-outro">This is an original demo inspired by playful portfolio sites like Bruno Simon's. Check out threejs.org to learn Three.js!</p>
+            <button id="btn-close-bts" class="btn-big">Close</button>
+        </div>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>
