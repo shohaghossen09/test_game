@@ -40,7 +40,7 @@ const followCam = new FollowCamera(camera, canvas);
 const ui = new UI();
 const circuit = new Circuit(world, ui);
 
-// ---------- Simple audio (WebAudio honk + engine) ----------
+// ---------- Audio ----------
 const audio = {
     enabled: true,
     ctx: null,
@@ -53,10 +53,46 @@ const audio = {
         g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
         o.connect(g).connect(this.ctx.destination);
         o.start(); o.stop(this.ctx.currentTime + 0.3);
+    },
+    playChime() {
+        this.ensure();
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        notes.forEach((f, i) => {
+            const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+            o.type = 'sine'; o.frequency.value = f;
+            const t = this.ctx.currentTime + i * 0.12;
+            g.gain.setValueAtTime(0.1, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+            o.connect(g).connect(this.ctx.destination);
+            o.start(t); o.stop(t + 0.4);
+        });
     }
 };
 
-// ---------- Input ----------
+// ---------- Secrets ----------
+let secretsFoundCount = 0;
+ui.initSecrets(world.secrets.length);
+
+function checkSecrets() {
+    for (const s of world.secrets) {
+        if (s.found) continue;
+        const d = Math.hypot(car.group.position.x - s.x, car.group.position.z - s.z);
+        if (d < 3) {
+            s.found = true;
+            scene.remove(s.mesh);
+            secretsFoundCount++;
+            ui.updateSecrets(secretsFoundCount);
+            if (secretsFoundCount === world.secrets.length) {
+                ui.setHint('All secrets found! You win!', 6);
+                audio.playChime();
+            } else {
+                ui.setHint(`Secret found! (${secretsFoundCount}/${world.secrets.length}) ${s.label}`, 4);
+            }
+        }
+    }
+}
+
+// ---------- Input (keyboard) ----------
 const input = { forward: false, backward: false, left: false, right: false, boost: false, brake: false, jump: false };
 
 const KEYMAP = {
@@ -65,7 +101,7 @@ const KEYMAP = {
     KeyA: 'left', ArrowLeft: 'left',
     KeyD: 'right', ArrowRight: 'right',
     ShiftLeft: 'boost', ShiftRight: 'boost',
-    KeyB: 'brake', ControlLeft: 'brake'
+    ControlLeft: 'brake'
 };
 
 addEventListener('keydown', (e) => {
@@ -76,8 +112,9 @@ addEventListener('keydown', (e) => {
         case 'KeyM': ui.toggleMap(); break;
         case 'KeyL': audio.enabled = !audio.enabled; ui.setHint(audio.enabled ? 'Sound on' : 'Sound off', 2); break;
         case 'KeyH': car.honk(audio); break;
+        case 'KeyB': ui.showBts(); break;
         case 'KeyC': circuit.start(); ui.setHint('Circuit started — hit the red checkpoint!', 4); break;
-        case 'Escape': ui.hideOptions(); ui.hideControls(); ui.hideCircuitResult(); break;
+        case 'Escape': ui.hideOptions(); ui.hideControls(); ui.hideCircuitResult(); ui.hideBts(); break;
         default:
             if (/^Digit[1-9]$/.test(e.code)) car.doHydraulics();
     }
@@ -87,12 +124,74 @@ addEventListener('keyup', (e) => {
     if (e.code === 'Space') input.jump = false;
 });
 
+// ---------- Input (touch / mobile) ----------
+const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+if (isTouchDevice) {
+    const touchControls = document.getElementById('touch-controls');
+    const stick = document.getElementById('touch-steer');
+    const knob = document.getElementById('touch-knob');
+
+    function setKnob(dx, dy) {
+        knob.style.left = `calc(50% + ${dx}px)`;
+        knob.style.top = `calc(50% + ${dy}px)`;
+    }
+
+    function updateStick(e) {
+        const rect = stick.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        let dx = e.clientX - cx, dy = e.clientY - cy;
+        const max = rect.width / 2 - 10;
+        const d = Math.hypot(dx, dy);
+        if (d > max) { dx = dx / d * max; dy = dy / d * max; }
+        setKnob(dx, dy);
+        input.forward = dy < -10;
+        input.backward = dy > 10;
+        input.left = dx < -10;
+        input.right = dx > 10;
+    }
+
+    function resetStick() {
+        input.left = input.right = input.forward = input.backward = false;
+        setKnob(0, 0);
+    }
+
+    stick.addEventListener('pointerdown', (e) => {
+        stick.setPointerCapture(e.pointerId);
+        updateStick(e);
+    });
+    stick.addEventListener('pointermove', (e) => {
+        if (stick.hasPointerCapture && stick.hasPointerCapture(e.pointerId)) updateStick(e);
+    });
+    stick.addEventListener('pointerup', resetStick);
+    stick.addEventListener('pointercancel', resetStick);
+
+    const bindHold = (id, prop) => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        btn.addEventListener('pointerdown', (e) => { e.preventDefault(); input[prop] = true; });
+        btn.addEventListener('pointerup', () => { input[prop] = false; });
+        btn.addEventListener('pointerleave', () => { input[prop] = false; });
+        btn.addEventListener('pointercancel', () => { input[prop] = false; });
+    };
+    bindHold('touch-boost', 'boost');
+    bindHold('touch-jump', 'jump');
+    bindHold('touch-brake', 'brake');
+
+    document.getElementById('btn-start').addEventListener('click', () => {
+        touchControls.classList.remove('hidden');
+    }, { once: true });
+}
+
 // ---------- UI wiring ----------
 document.getElementById('btn-start').onclick = () => {
     ui.hideTitle();
     ui.showHud();
     audio.ensure();
 };
+document.getElementById('btn-bts').onclick = () => ui.showBts();
+document.getElementById('btn-close-bts').onclick = () => ui.hideBts();
 document.getElementById('btn-audio').onclick = () => { audio.enabled = !audio.enabled; ui.setHint(audio.enabled ? 'Sound on' : 'Sound off', 2); };
 document.getElementById('btn-stuck').onclick = () => { car.respawn(world.respawnPoint); ui.setHint('Respawned!', 2); };
 document.getElementById('btn-map').onclick = () => ui.toggleMap();
@@ -140,16 +239,17 @@ const clock = new THREE.Clock();
 function tick() {
     requestAnimationFrame(tick);
     const dt = Math.min(clock.getDelta(), 0.05);
+    const elapsed = performance.now();
 
     if (!ui.el.title.classList.contains('hidden')) {
-        // idle title camera
-        const t = performance.now() * 0.0002;
+        const t = elapsed * 0.0002;
         camera.position.set(Math.cos(t) * 24, 10, Math.sin(t) * 24);
         camera.lookAt(0, 1, 0);
     } else {
         car.update(dt, input, world);
+        checkSecrets();
         circuit.update(car);
-        world.update(dt);
+        world.update(dt, elapsed);
         followCam.update(dt, car.group.position, car.heading);
         ui.updateSpeed(car.speedKmh);
         ui.updateMinimap(car.group.position, world);
