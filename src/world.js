@@ -28,7 +28,6 @@ function addRamp(scene, x, z, rotY) {
         new THREE.BoxGeometry(8, 0.5, 3),
         new THREE.MeshLambertMaterial({ color: '#e63946' })
     );
-    // wedge made of a tilted box
     m.rotation.x = -0.32;
     m.rotation.y = rotY;
     m.position.set(x, 1, z);
@@ -150,16 +149,41 @@ export function createWorld(scene) {
     pad.position.set(0, 0.03, 0);
     scene.add(pad);
 
+    // ===== Hidden secrets (glowing stars to find) =====
+    const secrets = [];
+    const secretSpots = [
+        { x: 0, z: 60, label: 'A star beyond the road' },
+        { x: -70, z: 20, label: 'A star hidden in the trees' },
+        { x: 80, z: -60, label: 'A star far from home' },
+        { x: -50, z: -80, label: 'A star in the deep field' },
+        { x: 60, z: 50, label: 'A star near the buildings' }
+    ];
+    for (const s of secretSpots) {
+        const star = new THREE.Mesh(
+            new THREE.OctahedronGeometry(0.9, 0),
+            new THREE.MeshBasicMaterial({ color: '#ffe066' })
+        );
+        star.position.set(s.x, 1.6, s.z);
+        scene.add(star);
+        secrets.push({ x: s.x, z: s.z, label: s.label, mesh: star, found: false });
+    }
+
     return {
         obstacles: OBSTACLES,
         ramps,
         checkpoints,
+        secrets,
         respawnPoint: new THREE.Vector3(0, 1, 0),
         mapRadius: 130,
-        update(dt) {
-            // animate checkpoint rings
+        update(dt, elapsed) {
             for (const c of checkpoints) {
                 c.ring.rotation.z += dt;
+            }
+            for (const s of secrets) {
+                if (!s.found) {
+                    s.mesh.rotation.y += dt * 2;
+                    s.mesh.position.y = 1.6 + Math.sin(elapsed * 0.002 + s.x) * 0.4;
+                }
             }
         }
     };
